@@ -1,0 +1,31 @@
+{
+  "appId": "com.yohealthfitness.app",
+  "appName": "YO Health & Fitness",
+  "webDir": "dist",
+  "backgroundColor": "#edf3ef",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always",
+    "scheme": "YO Health"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#14231d",
+      "showSpinner": false
+    },
+    "Keyboard": {
+      "resize": "body"
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#14231d"
+    }
+  }
+}
