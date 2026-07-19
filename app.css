@@ -671,6 +671,35 @@ select {
   gap: 16px;
 }
 
+.result-summary,
+.empty-state {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
+}
+
+.result-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.result-summary strong {
+  color: var(--ink);
+}
+
+.empty-state {
+  display: grid;
+  gap: 5px;
+}
+
+.empty-state strong {
+  color: var(--ink);
+}
+
 .provider-card {
   overflow: hidden;
 }

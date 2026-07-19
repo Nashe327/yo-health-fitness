@@ -67,6 +67,10 @@ import { healthMetrics } from "./catalog.js";
 
 const enableDemoAccess = import.meta.env.VITE_ENABLE_DEMO_ACCESS !== "false";
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email.trim());
+}
+
 const views = [
   ["dashboard", "Dashboard", LayoutDashboard],
   ["marketplace", "Book", Dumbbell],
@@ -578,8 +582,8 @@ function PublicPitchPage({ onOpenApp }) {
     event.preventDefault();
     setSaved("");
     setError("");
-    if (!form.email.trim()) {
-      setError("Email is required.");
+    if (!isValidEmail(form.email)) {
+      setError("Enter a valid email address, for example name@example.com.");
       return;
     }
     try {
@@ -871,13 +875,14 @@ function Marketplace({ providers, query, filters, setFilters, onBook }) {
   const roles = ["All", ...new Set(providers.map((provider) => provider.role))];
   const locations = ["All", ...new Set(providers.map((provider) => provider.location))];
   const budgets = ["All", ...new Set(providers.map((provider) => provider.budget))];
+  const searchTerm = query.trim().toLowerCase();
   const filtered = useMemo(() => providers.filter((provider) => {
-    const text = `${provider.name} ${provider.role} ${provider.goal} ${provider.tags.join(" ")}`.toLowerCase();
-    return (!query || text.includes(query.toLowerCase()))
+    const text = `${provider.name} ${provider.role} ${provider.goal} ${provider.location} ${provider.budget} ${provider.price} ${provider.tags.join(" ")}`.toLowerCase();
+    return (!searchTerm || text.includes(searchTerm))
       && (filters.role === "All" || provider.role === filters.role)
       && (filters.location === "All" || provider.location === filters.location)
       && (filters.budget === "All" || provider.budget === filters.budget);
-  }), [query, filters]);
+  }), [providers, searchTerm, filters]);
 
   return (
     <section className="stack">
@@ -885,6 +890,10 @@ function Marketplace({ providers, query, filters, setFilters, onBook }) {
         <Select value={filters.role} options={roles} onChange={(role) => setFilters({ ...filters, role })} />
         <Select value={filters.location} options={locations} onChange={(location) => setFilters({ ...filters, location })} />
         <Select value={filters.budget} options={budgets} onChange={(budget) => setFilters({ ...filters, budget })} />
+      </div>
+      <div className="result-summary">
+        <strong>{filtered.length}</strong>
+        <span>{filtered.length === 1 ? "provider found" : "providers found"}{searchTerm ? ` for "${query.trim()}"` : ""}</span>
       </div>
       <div className="provider-grid">
         {filtered.map((provider) => (
@@ -900,6 +909,12 @@ function Marketplace({ providers, query, filters, setFilters, onBook }) {
           </article>
         ))}
       </div>
+      {!filtered.length && (
+        <div className="empty-state">
+          <strong>No matching providers yet</strong>
+          <span>Try a broader search like trainer, yoga, Dubai, online, premium, weight loss, or recovery.</span>
+        </div>
+      )}
     </section>
   );
 }
@@ -1108,13 +1123,18 @@ function CheckoutPanel({ booking, onPayment }) {
 }
 
 function Gyms({ gyms, query }) {
-  const filtered = gyms.filter((gym) => `${gym.name} ${gym.area} ${gym.facilities.join(" ")}`.toLowerCase().includes(query.toLowerCase()));
+  const searchTerm = query.trim().toLowerCase();
+  const filtered = gyms.filter((gym) => `${gym.name} ${gym.area} ${gym.description} ${gym.price} ${gym.facilities.join(" ")}`.toLowerCase().includes(searchTerm));
   return (
     <section className="gym-layout">
       <div className="gym-image">
         <img src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=1400&q=80" alt="Modern gym" />
       </div>
       <div className="stack">
+        <div className="result-summary">
+          <strong>{filtered.length}</strong>
+          <span>{filtered.length === 1 ? "gym found" : "gyms found"}{searchTerm ? ` for "${query.trim()}"` : ""}</span>
+        </div>
         {filtered.map((gym) => (
           <Panel key={gym.id} title={gym.name} eyebrow={`${gym.area} · ★ ${gym.rating}`}>
             <p>{gym.description}</p>
@@ -1122,6 +1142,12 @@ function Gyms({ gyms, query }) {
             <div className="tag-row">{gym.facilities.map((tag) => <span key={tag}>{tag}</span>)}</div>
           </Panel>
         ))}
+        {!filtered.length && (
+          <div className="empty-state">
+            <strong>No matching gyms yet</strong>
+            <span>Try searching by area, facility, class, or pricing.</span>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1240,6 +1266,7 @@ function CorporateWellness({ employees, challenges, screenings, onEmployeeCreate
 function CorporateEmployeeManager({ employees, onCreate }) {
   const [form, setForm] = useState({ companyName: "Dubai Tech Group", fullName: "New Employee", department: "Sales", wellnessScore: 76, challengeStatus: "Invited" });
   const [saved, setSaved] = useState("");
+  const [error, setError] = useState("");
   return (
     <Panel title="Employee roster" eyebrow="People">
       <form className="form-grid" onSubmit={async (event) => {
@@ -2142,7 +2169,12 @@ function WaitlistCenter({ user, entries, onCreate, onStatusChange }) {
 
   async function submit(event) {
     event.preventDefault();
-    if (!form.email.trim()) return;
+    setError("");
+    setSaved("");
+    if (!isValidEmail(form.email)) {
+      setError("Enter a valid email address, for example name@example.com.");
+      return;
+    }
     await onCreate(form);
     setSaved("Interest saved");
     setForm((current) => ({ ...current, message: "" }));
@@ -2214,6 +2246,7 @@ function WaitlistCenter({ user, entries, onCreate, onStatusChange }) {
             <label>Message
               <textarea rows="4" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder="What do you want from YO Health & Fitness?" />
             </label>
+            {error && <p className="error">{error}</p>}
             <button type="submit" className="primary-action">Save interest</button>
           </form>
           {saved && <p className="success-note">{saved}. This can now be used as launch validation.</p>}
