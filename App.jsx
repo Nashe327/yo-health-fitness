@@ -245,7 +245,7 @@ const mobileReleaseTracks = [
 
 export function App() {
   const [publicPage, setPublicPage] = useState(() => window.location.pathname === "/pitch");
-  const [user, setUser] = useState(enableDemoAccess ? { email: "preview@yohealthfitness.com", role: "admin", preview: true } : null);
+  const [user, setUser] = useState(null);
   const [view, setView] = useState("dashboard");
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState({ role: "All", location: "All", budget: "All" });
@@ -320,6 +320,11 @@ export function App() {
   const userRole = normalizeRole(user?.role);
   const availableViewIds = roleViews[userRole] || roleViews.client;
   const availableViews = views.filter(([id]) => availableViewIds.includes(id));
+  const handleLogout = async () => {
+    await signOut();
+    setUser(null);
+    setView("dashboard");
+  };
 
   useEffect(() => {
     if (!user || view === "confirmation") return;
@@ -369,10 +374,13 @@ export function App() {
             <p className="eyebrow">{roleLabels[userRole]} workspace · {isDemoMode ? "Demo mode" : "Live Supabase mode"}</p>
             <h1>{titleFor(view)}</h1>
           </div>
-          <label className="search">
-            <Search size={18} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search providers, gyms, goals" />
-          </label>
+          <div className="topbar-actions">
+            <label className="search">
+              <Search size={18} />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search providers, gyms, goals" />
+            </label>
+            <button className="secondary-btn logout-btn" onClick={handleLogout}><LogOut size={17} /> Logout</button>
+          </div>
         </header>
 
         {appError && <div className="error-banner">{appError}</div>}
@@ -460,7 +468,7 @@ export function App() {
             await updateWaitlistStatus(id, status);
           }}
         />}
-        {view === "profile" && <ProfileSettings user={user} onSave={async (profile) => {
+        {view === "profile" && <ProfileSettings user={user} onLogout={handleLogout} onSave={async (profile) => {
           const result = await updateProfile(profile);
           setUser((current) => ({
             ...current,
@@ -1681,7 +1689,7 @@ function BuyerPipeline() {
   );
 }
 
-function ProfileSettings({ user, onSave }) {
+function ProfileSettings({ user, onSave, onLogout }) {
   const profile = user.profile || {};
   const [form, setForm] = useState({
     fullName: profile.fullName || "Demo Client",
@@ -1727,6 +1735,7 @@ function ProfileSettings({ user, onSave }) {
           <label>Goals<input value={form.goals} onChange={(event) => update("goals", event.target.value)} /></label>
           <label className="check-row wide"><input type="checkbox" checked={form.consent} onChange={(event) => update("consent", event.target.checked)} /> I understand YO Health provides wellness guidance and is not a medical diagnosis tool.</label>
           <button className="primary-btn wide"><Save size={17} /> Save profile</button>
+          <button type="button" className="secondary-btn wide" onClick={onLogout}><LogOut size={17} /> Logout</button>
         </form>
         {saved && <p className="success-note">{saved}. This data is ready for personalization, bookings, and AI coaching.</p>}
       </Panel>
