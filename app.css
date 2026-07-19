@@ -588,7 +588,7 @@ select {
 }
 
 .admin-grid {
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
 }
 
 .metric-card,
@@ -657,6 +657,76 @@ select {
 .row strong,
 .row span {
   display: block;
+}
+
+.booking-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.booking-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.status-pill.success {
+  background: rgba(69, 184, 131, 0.16);
+  color: var(--mint-dark);
+}
+
+.status-pill.warning {
+  background: rgba(196, 154, 69, 0.16);
+  color: #8a6419;
+}
+
+.status-pill.danger {
+  background: rgba(185, 28, 28, 0.1);
+  color: #b91c1c;
+}
+
+.status-pill.neutral {
+  background: var(--soft);
+  color: var(--muted);
+}
+
+.booking-pipeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.booking-pipeline div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+}
+
+.booking-pipeline span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.booking-pipeline strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 24px;
 }
 
 .filter-bar select {

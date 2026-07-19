@@ -71,6 +71,22 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email.trim());
 }
 
+function bookingStatusClass(status = "") {
+  const normalized = status.toLowerCase();
+  if (["confirmed", "completed", "paid"].includes(normalized)) return "success";
+  if (["cancelled", "rejected", "failed"].includes(normalized)) return "danger";
+  if (["pending", "requested"].includes(normalized)) return "warning";
+  return "neutral";
+}
+
+function summarizeBookings(bookings = []) {
+  const totalValue = bookings.reduce((sum, booking) => sum + (Number(booking.value) || 0), 0);
+  const requested = bookings.filter((booking) => booking.status?.toLowerCase() === "requested").length;
+  const confirmed = bookings.filter((booking) => booking.status?.toLowerCase() === "confirmed").length;
+  const paid = bookings.filter((booking) => ["paid", "pending"].includes(booking.paymentStatus?.toLowerCase())).length;
+  return { totalValue, requested, confirmed, paid };
+}
+
 const views = [
   ["dashboard", "Dashboard", LayoutDashboard],
   ["marketplace", "Book", Dumbbell],
@@ -778,6 +794,7 @@ function AuthScreen({ onLogin, demoAccess, onOpenPitch }) {
 }
 
 function Dashboard({ bookings, metrics, setView, onMetricSubmit }) {
+  const bookingStats = summarizeBookings(bookings);
   return (
     <section className="stack">
       <div className="hero-strip">
@@ -795,17 +812,27 @@ function Dashboard({ bookings, metrics, setView, onMetricSubmit }) {
       <div className="metric-grid">
         {metrics.map(([label, value, note]) => <Metric key={label} label={label} value={value} note={note} />)}
       </div>
+      <div className="booking-overview">
+        <Metric label="Upcoming" value={bookings.length} note="Visible bookings" />
+        <Metric label="Requested" value={bookingStats.requested} note="Needs confirmation" />
+        <Metric label="Confirmed" value={bookingStats.confirmed} note="Ready to attend" />
+        <Metric label="Booking GMV" value={`AED ${bookingStats.totalValue}`} note="Session value" />
+      </div>
       <div className="two-col">
         <Panel title="Upcoming bookings" eyebrow="Bookings">
           <div className="list">
-            {bookings.map((booking) => (
+            {bookings.length ? bookings.map((booking) => (
               <div className="row" key={booking.id}>
                 <CalendarCheck size={18} />
                 <div><strong>{booking.provider}</strong><span>{booking.service} · {booking.time}</span></div>
-                <b>{booking.status}</b>
+                <div className="booking-tags">
+                  <span className={`status-pill ${bookingStatusClass(booking.status)}`}>{booking.status}</span>
+                  <span className={`status-pill ${bookingStatusClass(booking.paymentStatus || "unpaid")}`}>{booking.paymentStatus || "Unpaid"}</span>
+                </div>
               </div>
-            ))}
+            )) : <p>No upcoming bookings yet. Use Book a session to create the first request.</p>}
           </div>
+          <button className="secondary-btn wide" onClick={() => setView("marketplace")}>Find another provider</button>
         </Panel>
         <Panel title="Health signals" eyebrow="Today">
           <div className="signal-list">
@@ -1572,11 +1599,13 @@ function Admin({ bookings, payments, providers, documents, reviews, onStatusChan
   const pendingProviders = providers.filter((provider) => provider.status === "Pending").length;
   const pendingDocuments = documents.filter((document) => document.status === "Pending").length;
   const pendingReviews = reviews.filter((review) => review.status === "Pending").length;
+  const bookingStats = summarizeBookings(bookings);
   return (
     <section className="stack">
       <div className="admin-grid">
         <Metric label="Bookings" value={bookings.length} note={isDemoMode ? "Demo data" : "Live data"} />
-        <Metric label="Providers" value={providers.length} note="4 verified" />
+        <Metric label="Booking GMV" value={`AED ${bookingStats.totalValue}`} note="Session pipeline" />
+        <Metric label="Payments" value={`AED ${paymentRevenue}`} note="Checkout records" />
         <Metric label="Pending approvals" value={pendingProviders} note="Provider pipeline" />
         <Metric label="Trust queue" value={pendingDocuments + pendingReviews} note="Docs and reviews" />
       </div>
@@ -1585,7 +1614,12 @@ function Admin({ bookings, payments, providers, documents, reviews, onStatusChan
           <div className="list">{providers.map((provider) => <div className="row" key={provider.id}><Apple size={18} /><div><strong>{provider.name}</strong><span>{provider.role} · AED {provider.price || 0}</span></div><select value={provider.status.toLowerCase()} onChange={(event) => onProviderStatusChange(provider.id, event.target.value)}><option value="pending">Pending</option><option value="verified">Verified</option><option value="rejected">Rejected</option></select></div>)}</div>
         </Panel>
         <Panel title="Booking operations" eyebrow="Revenue">
-          <div className="list">{bookings.map((booking) => <div className="row" key={booking.id}><Activity size={18} /><div><strong>{booking.provider}</strong><span>{booking.client} · {booking.time} · {booking.paymentStatus || "Unpaid"}</span></div><select value={booking.status.toLowerCase()} onChange={(event) => onStatusChange(booking.id, event.target.value)}><option value="requested">Requested</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>)}</div>
+          <div className="booking-pipeline">
+            <div><span>Requested</span><strong>{bookingStats.requested}</strong></div>
+            <div><span>Confirmed</span><strong>{bookingStats.confirmed}</strong></div>
+            <div><span>Paid/Pending</span><strong>{bookingStats.paid}</strong></div>
+          </div>
+          <div className="list">{bookings.length ? bookings.map((booking) => <div className="row" key={booking.id}><Activity size={18} /><div><strong>{booking.provider}</strong><span>{booking.client} · {booking.time} · AED {booking.value || 0}</span><span>{booking.paymentStatus || "Unpaid"} payment</span></div><select value={booking.status.toLowerCase()} onChange={(event) => onStatusChange(booking.id, event.target.value)}><option value="requested">Requested</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>) : <p>No booking requests yet.</p>}</div>
         </Panel>
       </div>
       <Panel title="Document verification queue" eyebrow="Trust operations">
