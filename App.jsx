@@ -2051,7 +2051,7 @@ function SalesPackage({ providers, bookings, payments }) {
           <h2>Sell YO Health & Fitness as a working UAE marketplace MVP</h2>
           <p>Use this workspace to explain the product, show proof points, model the opportunity, and track conversations with gyms, clinics, corporate wellness companies, investors, and fitness brands.</p>
         </div>
-        <div className="report-card"><strong>AED</strong><span>deal-ready package</span></div>
+        <div className="report-card"><strong>AED<br />2.55M</strong><span>deal-ready package</span></div>
       </div>
       <div className="admin-grid">
         <Metric label="Providers" value={providers.length} note="Marketplace supply" />
