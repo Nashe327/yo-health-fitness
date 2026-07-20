@@ -615,6 +615,12 @@ function PublicPitchPage({ onOpenApp }) {
     ["B2B Engine", "Corporate wellness, employee challenges, screenings, concierge training, and partner reporting."],
     ["Sellable MVP", "React app, Supabase backend, Android packaging, legal drafts, store docs, and buyer materials."]
   ];
+  const buyerFits = [
+    ["Gym chain", "Launch a member booking and wellness layer without starting from scratch."],
+    ["Clinic group", "Add recovery, nutrition, physiotherapy, and health dashboard workflows."],
+    ["Corporate wellness", "Package employee challenges, screenings, providers, and reporting."],
+    ["Fitness brand", "Own a marketplace, AI coaching layer, and buyer-ready UAE wellness product."]
+  ];
 
   async function submit(event) {
     event.preventDefault();
@@ -659,7 +665,7 @@ function PublicPitchPage({ onOpenApp }) {
         <div className="pitch-phone">
           <div><span>Bookings</span><strong>24</strong></div>
           <div><span>GMV demo</span><strong>AED 18.4k</strong></div>
-          <div><span>Launch tracks</span><strong>Mobile + Supabase</strong></div>
+          <div><span>Buyer value</span><strong>AED 2.55M</strong></div>
         </div>
       </section>
 
@@ -679,6 +685,19 @@ function PublicPitchPage({ onOpenApp }) {
         <div>
           <span>Premium edge</span>
           <strong>Concierge training</strong>
+        </div>
+      </section>
+
+      <section className="pitch-section">
+        <div>
+          <p className="eyebrow">Why this is worth a serious conversation</p>
+          <h2>A buyer gets more than an idea. They get a working product, launch story, and sales pipeline.</h2>
+        </div>
+        <div className="pitch-proof-grid">
+          <article><span>Live product</span><strong>React + Vite</strong><p>Hosted app with dashboard, marketplace, waitlist, profile, admin, revenue, and sales views.</p></article>
+          <article><span>Backend path</span><strong>Supabase</strong><p>Authentication, profiles, bookings, providers, health metrics, leads, and operational data model.</p></article>
+          <article><span>Mobile path</span><strong>iOS + Android</strong><p>Capacitor-ready packaging direction for store builds when Apple and Google accounts are ready.</p></article>
+          <article><span>Commercial proof</span><strong>AED 2.55M</strong><p>Indicative buyer discussion value based on modeled monthly revenue and annual multiple.</p></article>
         </div>
       </section>
 
@@ -713,10 +732,25 @@ function PublicPitchPage({ onOpenApp }) {
         </Panel>
       </section>
 
+      <section className="pitch-section">
+        <div>
+          <p className="eyebrow">Best-fit buyers</p>
+          <h2>Built for operators that already own trust, customers, or distribution.</h2>
+        </div>
+        <div className="buyer-fit-grid">
+          {buyerFits.map(([title, copy]) => (
+            <article key={title}>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section id="early-access" className="pitch-section two-col">
         <div>
           <p className="eyebrow">Early access</p>
-          <h2>Request demo access, partnership discussion, or pilot details.</h2>
+          <h2>Request demo access, buyer discussion, or pilot details.</h2>
           <p className="pitch-muted">Use this page for gyms, clinics, investors, wellness companies, corporate HR teams, and strategic buyers. Each submission is stored in the app waitlist pipeline.</p>
         </div>
         <form className="pitch-form" onSubmit={submit}>
