@@ -87,6 +87,15 @@ function summarizeBookings(bookings = []) {
   return { totalValue, requested, confirmed, paid };
 }
 
+function providerHighlights(provider) {
+  return [
+    `${provider.budget} pricing`,
+    `${provider.location} sessions`,
+    `${provider.goal} focus`,
+    provider.status === "Verified" ? "Verified profile" : "Pending verification"
+  ];
+}
+
 const views = [
   ["dashboard", "Dashboard", LayoutDashboard],
   ["marketplace", "Book", Dumbbell],
@@ -960,17 +969,32 @@ function ProviderDetail({ provider, reviews = [], onClose, onCreate }) {
     "Monthly coaching call"
   ];
   const approvedReviews = reviews.filter((review) => review.status === "Approved");
+  const commission = Math.round(provider.price * 0.15);
+  const payout = provider.price - commission;
+  const highlights = providerHighlights(provider);
   return (
     <aside className="drawer provider-detail">
       <button className="close-btn" onClick={onClose}>×</button>
-      <img className="detail-image" src={provider.image} alt={provider.name} />
-      <p className="eyebrow">{provider.role} · ★ {provider.rating}</p>
-      <h2>{provider.name}</h2>
-      <p>{provider.goal} specialist available for {provider.location.toLowerCase()} sessions. Ideal for clients who want structured progress and premium accountability.</p>
-      <div className="tag-row">{provider.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+      <div className="provider-hero-card">
+        <img className="detail-image" src={provider.image} alt={provider.name} />
+        <div className="provider-hero-overlay">
+          <span className={`status-pill ${bookingStatusClass(provider.status)}`}>{provider.status}</span>
+          <h2>{provider.name}</h2>
+          <p>{provider.role} · {provider.goal} · ★ {provider.rating}</p>
+        </div>
+      </div>
+      <div className="provider-summary">
+        <p>{provider.goal} specialist available for {provider.location.toLowerCase()} sessions. Ideal for clients who want structured progress, verified accountability, and a clear plan before paying.</p>
+        <div className="tag-row">{provider.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+      </div>
       <div className="detail-stats">
         <Metric label="Session" value={`AED ${provider.price}`} note={provider.budget} />
-        <Metric label="Commission" value={`AED ${Math.round(provider.price * 0.15)}`} note="15% model" />
+        <Metric label="Platform fee" value={`AED ${commission}`} note="15% commission" />
+        <Metric label="Provider payout" value={`AED ${payout}`} note="Estimated after fee" />
+        <Metric label="Rating" value={provider.rating} note="Marketplace trust" />
+      </div>
+      <div className="highlight-grid">
+        {highlights.map((item) => <div key={item}><ShieldCheck size={16} /><span>{item}</span></div>)}
       </div>
       <div className="review-strip">
         {approvedReviews.length ? approvedReviews.slice(0, 2).map((review) => (
@@ -1000,6 +1024,10 @@ function ProviderDetail({ provider, reviews = [], onClose, onCreate }) {
       <label className="drawer-label">Client notes
         <textarea value={notes} onChange={(event) => setNotes(event.target.value)} />
       </label>
+      <div className="checkout-note">
+        <strong>Booking request first, payment second</strong>
+        <span>The provider can confirm the session before checkout is prepared. This keeps the marketplace workflow clear for clients and operators.</span>
+      </div>
       <button className="primary-btn full" onClick={() => onCreate({
         client: "Demo client",
         provider: provider.name,
@@ -1018,17 +1046,27 @@ function ProviderDetail({ provider, reviews = [], onClose, onCreate }) {
 
 function BookingConfirmation({ booking, onDashboard, onMarketplace, onPayment, onReview }) {
   const commission = Math.round((booking.value || 0) * 0.15);
+  const providerPayout = (booking.value || 0) - commission;
   return (
     <section className="stack">
       <div className="confirmation-panel">
-        <p className="eyebrow">Booking requested</p>
-        <h2>{booking.provider}</h2>
-        <p>{booking.service} · {booking.time}</p>
-        <div className="admin-grid">
+        <div className="confirmation-header">
+          <div>
+            <p className="eyebrow">Booking requested</p>
+            <h2>{booking.provider}</h2>
+            <p>{booking.service} · {booking.time}</p>
+          </div>
+          <span className={`status-pill ${bookingStatusClass(booking.status)}`}>{booking.status}</span>
+        </div>
+        <div className="confirmation-grid">
           <Metric label="Client pays" value={`AED ${booking.value || 0}`} note="Booking value" />
           <Metric label="Platform earns" value={`AED ${commission}`} note="15% commission" />
-          <Metric label="Status" value={booking.status} note="Admin workflow" />
-          <Metric label="Payment" value={booking.paymentStatus || "Unpaid"} note="Checkout status" />
+          <Metric label="Provider payout" value={`AED ${providerPayout}`} note="After platform fee" />
+          <Metric label="Payment" value={booking.paymentStatus || "Unpaid"} note="Checkout next" />
+        </div>
+        <div className="next-step-card">
+          <strong>Next step</strong>
+          <span>Confirm the booking in Admin, then create a hosted checkout record. This proves the marketplace can handle booking request, operator approval, payment preparation, and revenue tracking.</span>
         </div>
         <div className="button-row">
           <button className="primary-btn" onClick={onDashboard}>View dashboard</button>
